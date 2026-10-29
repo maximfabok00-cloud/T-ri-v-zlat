@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Önkényuralom és kiegyezés – tanulókártyák</title>
+<style>
+  :root {
+    --bg: #1f1f21;
+    --panel: #2a2a2d;
+    --panel-2: #323236;
+    --text: #f2f2f2;
+    --muted: #a8a8ae;
+    --accent: #ff5a5f;
+    --accent-soft: rgba(255, 90, 95, .14);
+    --good: #4cc38a;
+    --line: #3c3c41;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f6f4f1; --panel: #ffffff; --panel-2: #efece8; --text: #1d1d1f;
+      --muted: #6b6b72; --accent: #e5383d; --accent-soft: rgba(229, 56, 61, .1);
+      --good: #1f9d68; --line: #dcd8d2;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5; min-height: 100vh;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  header h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  .tabs { display: flex; gap: 8px; margin: 20px 0 16px; }
+  .tab {
+    flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text); font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .chip {
+    padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; color: var(--muted); font: inherit; font-size: .85rem; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  .progress { display: flex; justify-content: space-between; align-items: center; font-size: .9rem; color: var(--muted); margin-bottom: 8px; }
+  .bar { height: 6px; background: var(--panel-2); border-radius: 99px; overflow: hidden; margin-bottom: 16px; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--good); transition: width .25s; }
+
+  .scene { perspective: 1200px; }
+  .card {
+    position: relative; width: 100%; height: 300px; cursor: pointer;
+    transform-style: preserve-3d; transition: transform .45s;
+    border: 0; padding: 0; background: none; color: inherit; font: inherit; text-align: inherit;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 28px 24px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel);
+    text-align: center; overflow: auto;
+  }
+  .face.back { transform: rotateY(180deg); background: var(--panel-2); border-color: var(--accent); }
+  .tag { position: absolute; top: 14px; left: 18px; font-size: .75rem; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+  .hint { position: absolute; bottom: 12px; font-size: .78rem; color: var(--muted); }
+  .face .txt { font-size: 1.3rem; font-weight: 600; white-space: pre-line; }
+  .face.back .txt { font-size: 1.1rem; font-weight: 500; }
+
+  .nav { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .btn {
+    flex: 1; min-width: 110px; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text); font: inherit; font-weight: 600; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.know { background: var(--good); border-color: var(--good); color: #0b2a1c; }
+  .btn.again { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .btn.ghost { flex: 0 1 auto; color: var(--muted); font-weight: 500; }
+  .done {
+    text-align: center; padding: 40px 20px; border: 1px dashed var(--line); border-radius: 16px; background: var(--panel);
+  }
+  .done h2 { margin: 0 0 8px; }
+  .keys { margin-top: 14px; font-size: .8rem; color: var(--muted); text-align: center; }
+
+  .outline h2 { color: var(--accent); font-size: 1.2rem; margin: 22px 0 6px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .outline h3 { font-size: 1.02rem; margin: 16px 0 4px; }
+  .outline ul { margin: 0; padding-left: 20px; }
+  .outline li { margin: 4px 0; }
+  .outline li::marker { color: var(--accent); }
+  .note { margin-top: 20px; font-size: .85rem; color: var(--muted); }
+  [hidden] { display: none !important; }
+  @media (max-width: 480px) { .card { height: 340px; } .face .txt { font-size: 1.15rem; } }
+  @media print { .tabs, .chips, .nav, .progress, .bar, .keys, .scene { display: none; } body { background: #fff; color: #000; } #outline { display: block !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="title"></h1>
+    <p id="subtitle"></p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-cards" aria-selected="true">Tanulókártyák</button>
+    <button class="tab" role="tab" id="tab-outline" aria-selected="false">Rövid vázlat</button>
+  </div>
+
+  <section id="cards">
+    <div class="chips" id="chips"></div>
+    <div class="progress"><span id="pos"></span><span id="known"></span></div>
+    <div class="bar"><i id="barfill"></i></div>
+
+    <div id="deckArea">
+      <div class="scene">
+        <button class="card" id="card" aria-label="Kártya – kattints a megfordításhoz">
+          <div class="face front"><span class="tag" id="tagF"></span><div class="txt" id="qtxt"></div><span class="hint">Kattints vagy Szóköz: válasz</span></div>
+          <div class="face back"><span class="tag" id="tagB"></span><div class="txt" id="atxt"></div></div>
+        </button>
+      </div>
+      <div class="nav">
+        <button class="btn ghost" id="prev">← Előző</button>
+        <button class="btn again" id="again">Még gyakorlom</button>
+        <button class="btn know" id="know">Tudom ✓</button>
+        <button class="btn ghost" id="next">Következő →</button>
+      </div>
+      <div class="nav">
+        <button class="btn ghost" id="shuffle">Keverés</button>
+        <button class="btn ghost" id="unknownOnly">Csak a nem tudottak</button>
+        <button class="btn ghost" id="reset">Újrakezdés</button>
+      </div>
+      <p class="keys">Billentyűk: ← → lapozás, Szóköz fordítás, K = tudom, N = még gyakorlom</p>
+    </div>
+
+    <div class="done" id="doneArea" hidden>
+      <h2>Mind a kártyát tudod! 🎉</h2>
+      <p>Ebben a csoportban minden kártyát ismertnek jelöltél.</p>
+      <button class="btn" id="resetDone">Újrakezdés</button>
+    </div>
+  </section>
+
+  <section id="outline" class="outline" hidden></section>
+</div>
+
+<script>
+const DATA = {"title":"Az önkényuralom és a kiegyezés","subtitle":"Töri dolgozat – rövidített vázlat és tanulókártyák","outline":[{"heading":"I. Az önkényuralom évei","sections":[{"title":"1. A Bach-rendszer","points":["Cél: Magyarország beolvasztása a birodalomba (Ferenc József császári önkényuralma); kiépítője Alexander Bach belügyminiszter","Feldarabolás, központi igazgatás: Erdély és Horvátország leválasztva, Szerb Vajdaság létrehozva, a maradék 5 kerület","Egységesítés: osztrák mérték- és súlyrendszer, jogrendszer, adók (az adók többszörösükre nőttek)","Támaszok: hadsereg, rendőrség és besúgóhálózat, „Bach-huszárok”"]},{"title":"2. Magyar ellenállás","points":["Elutasítás: Kossuth-szakáll, magyaros ruha, betiltott iskolai farsangi bálok; fegyveres szembeszállás, új szabadságharc szervezése","Passzív ellenállás: nem működtek együtt, nem fizettek adót, nem engedelmeskedtek a rendeleteknek","Politikai vezéralak: Deák Ferenc"]},{"title":"3. Kossuth az emigrációban","points":["A szabadságharc után kb. 5000 ember emigrált","Állomások: Török föld, Amerika, Anglia, Olaszország (Torinó)"]}]},{"heading":"II. A kiegyezés","sections":[{"title":"1. Az önkényuralom válsága","points":["Pénzügyi válság: az 1850-es évek végén a birodalom hiánnyal küzdött","Katonai vereségek: 1859 Észak-Itália, összecsapás Poroszországgal","Belpolitikai kísérletek: Bach menesztése, 1861-ben országgyűlés; Deák Ferenc ragaszkodott az 1848-as áprilisi törvényekhez, az uralkodó feloszlatta az országgyűlést"]},{"title":"2. Út a kiegyezéshez","points":["A társadalom belefáradt a passzív ellenállásba; Kossuth és az emigráció nem tudott segítséget szerezni","1865: Deák Húsvéti cikke (Pesti Napló) – a magyarok hajlandók a megegyezésre","1866: porosz–osztrák háború, osztrák vereség – felgyorsultak a tárgyalások","1867. június 8.: Ferenc József magyar királlyá koronázása"]},{"title":"3. A kiegyezés tartalma","points":["Kétközpontú (dualista) állam: Osztrák–Magyar Monarchia","Magyarország teljes belső önállóságot kapott; felelős magyar kormány, miniszterelnök gróf Andrássy Gyula","Közös ügyek: hadügy, külügy, pénzügy (a közös hadügy és külügy költségeire)"]},{"title":"4. Értékelés","points":["Kompromisszum","Fejlődés"]}]}],"cards":[{"topic":"Bach-rendszer","q":"Mi volt a Bach-rendszer célja?","a":"A bécsi udvar be akarta olvasztani Magyarországot a birodalomba. Ferenc József császári önkényuralmat vezetett be."},{"topic":"Bach-rendszer","q":"Ki építette ki az új rendszert?","a":"Alexander Bach báró, belügyminiszter."},{"topic":"Bach-rendszer","q":"Hogyan darabolták fel és igazgatták Magyarországot?","a":"Központi igazgatás. Erdélyt és Horvátországot leválasztották, létrehozták a Szerb Vajdaságot, a megmaradt területet 5 kerületre osztották."},{"topic":"Bach-rendszer","q":"Hogyan egységesítették a birodalmat?","a":"Bevezették az osztrák mérték- és súlyrendszert, jogrendszert és adófajtákat. Az adók többszörösükre nőttek."},{"topic":"Bach-rendszer","q":"Mik voltak az önkényuralom hatalmi támaszai?","a":"Hadsereg; rendőrség és besúgóhálózat; a „Bach-huszárok”."},{"topic":"Ellenállás","q":"Hogyan utasította el a társadalom az önkényuralmat?","a":"Kossuth-szakáll, magyaros ruha viselése, betiltott iskolai farsangi bálok. Egyesek fegyverrel szálltak szembe, új szabadságharcot szerveztek."},{"topic":"Ellenállás","q":"Mit jelentett a passzív ellenállás?","a":"Nem működtek együtt a hatalommal, nem fizették az adókat, és nem engedelmeskedtek a rendeleteknek."},{"topic":"Ellenállás","q":"Ki volt a korszak politikai vezéralakja?","a":"Deák Ferenc."},{"topic":"Ellenállás","q":"Mi történt Kossuthtal és az emigránsokkal?","a":"A szabadságharc után kb. 5000 ember emigrált. Állomások: Török föld, Amerika, Anglia, Olaszország (Torinó)."},{"topic":"Válság","q":"Miért került válságba az önkényuralom?","a":"Gazdasági és pénzügyi válság (az 1850-es évek végén pénzügyi hiány) és súlyos katonai vereségek miatt."},{"topic":"Válság","q":"Milyen katonai vereségek érték a birodalmat?","a":"1859-ben Észak-Itáliában; emellett összecsapás Poroszországgal."},{"topic":"Válság","q":"Milyen belpolitikai kísérletek voltak?","a":"Ferenc József menesztette Bach belügyminisztert, 1861-re összehívta az országgyűlést. Deák vezetésével a magyarok ragaszkodtak az 1848-as áprilisi törvényekhez, ezért az uralkodó feloszlatta az országgyűlést."},{"topic":"Út a kiegyezéshez","q":"Miért változtak meg a magyar álláspontok?","a":"A társadalom belefáradt a passzív ellenállásba, Kossuth és az emigráció pedig nem tudott segítséget szerezni."},{"topic":"Út a kiegyezéshez","q":"Mi volt Deák Ferenc Húsvéti cikke (1865)?","a":"A Pesti Naplóban jelent meg. Jelezte, hogy a magyarok hajlandók a megegyezésre."},{"topic":"Út a kiegyezéshez","q":"Mi gyorsította fel a tárgyalásokat?","a":"Az osztrákok veresége az 1866-os porosz–osztrák háborúban."},{"topic":"Út a kiegyezéshez","q":"Mikor koronázták Ferenc Józsefet magyar királlyá?","a":"1867. június 8-án."},{"topic":"Út a kiegyezéshez","q":"Időrend: 1859 – 1861 – 1865 – 1866 – 1867","a":"1859: katonai vereség Észak-Itáliában\n1861: országgyűlés, majd feloszlatás\n1865: Deák Húsvéti cikke\n1866: porosz–osztrák háború, osztrák vereség\n1867. június 8.: koronázás"},{"topic":"A kiegyezés","q":"Milyen állam jött létre a kiegyezéssel?","a":"Kétközpontú (dualista) állam: az Osztrák–Magyar Monarchia."},{"topic":"A kiegyezés","q":"Mit kapott Magyarország a belpolitikában?","a":"Teljes belső önállóságot. Megalakult a felelős magyar kormány gróf Andrássy Gyula miniszterelnök vezetésével."},{"topic":"A kiegyezés","q":"Melyek voltak a közös ügyek?","a":"Hadügy, külügy és pénzügy (a közös hadügy és külügy költségeire)."},{"topic":"A kiegyezés","q":"Hogyan értékelhető a kiegyezés?","a":"Kompromisszum volt, és fejlődést hozott."}]};
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const KEY = 'tori-kiegyezes-known';
+let known = new Set(store.get(KEY, []));
+let topic = 'Mind';
+let onlyUnknown = false;
+let order = DATA.cards.map((_, i) => i);
+let idx = 0;
+
+$('title').textContent = DATA.title;
+$('subtitle').textContent = DATA.subtitle;
+
+const topics = ['Mind', ...new Set(DATA.cards.map(c => c.topic))];
+topics.forEach(t => {
+  const b = document.createElement('button');
+  b.className = 'chip'; b.textContent = t; b.setAttribute('aria-pressed', t === topic);
+  b.onclick = () => { topic = t; idx = 0; renderChips(); render(); };
+  $('chips').appendChild(b);
+});
+function renderChips() {
+  [...$('chips').children].forEach(b => b.setAttribute('aria-pressed', b.textContent === topic));
+}
+
+function visible() {
+  return order.filter(i => (topic === 'Mind' || DATA.cards[i].topic === topic) && (!onlyUnknown || !known.has(i)));
+}
+
+function render() {
+  const list = visible();
+  const pool = DATA.cards.map((_, i) => i).filter(i => topic === 'Mind' || DATA.cards[i].topic === topic);
+  const knownInPool = pool.filter(i => known.has(i)).length;
+  $('known').textContent = `Tudom: ${knownInPool} / ${pool.length}`;
+  $('barfill').style.width = pool.length ? (knownInPool / pool.length * 100) + '%' : '0%';
+  $('unknownOnly').textContent = onlyUnknown ? 'Mind a kártya' : 'Csak a nem tudottak';
+
+  if (!list.length) {
+    $('deckArea').hidden = true; $('doneArea').hidden = false; $('pos').textContent = '';
+    return;
+  }
+  $('deckArea').hidden = false; $('doneArea').hidden = true;
+  if (idx >= list.length) idx = 0;
+  if (idx < 0) idx = list.length - 1;
+  const c = DATA.cards[list[idx]];
+  $('card').classList.remove('flipped');
+  $('qtxt').textContent = c.q; $('atxt').textContent = c.a;
+  $('tagF').textContent = c.topic; $('tagB').textContent = c.topic;
+  $('pos').textContent = `${idx + 1} / ${list.length}`;
+}
+function current() { return visible()[idx]; }
+function flip() { $('card').classList.toggle('flipped'); }
+function go(d) { idx += d; render(); }
+
+$('card').onclick = flip;
+$('next').onclick = () => go(1);
+$('prev').onclick = () => go(-1);
+$('know').onclick = () => { const c = current(); if (c === undefined) return; known.add(c); store.set(KEY, [...known]); if (onlyUnknown) { render(); } else { go(1); } };
+$('again').onclick = () => { const c = current(); if (c === undefined) return; known.delete(c); store.set(KEY, [...known]); go(1); };
+$('shuffle').onclick = () => {
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+  idx = 0; render();
+};
+$('unknownOnly').onclick = () => { onlyUnknown = !onlyUnknown; idx = 0; render(); };
+const resetAll = () => { known = new Set(); store.set(KEY, []); onlyUnknown = false; idx = 0; render(); };
+$('reset').onclick = resetAll; $('resetDone').onclick = resetAll;
+
+document.addEventListener('keydown', e => {
+  if ($('cards').hidden) return;
+  if (e.key === 'ArrowRight') go(1);
+  else if (e.key === 'ArrowLeft') go(-1);
+  else if (e.key === ' ') { e.preventDefault(); flip(); }
+  else if (e.key.toLowerCase() === 'k') $('know').click();
+  else if (e.key.toLowerCase() === 'n') $('again').click();
+});
+
+// Vázlat
+const out = $('outline');
+DATA.outline.forEach(part => {
+  const h2 = document.createElement('h2'); h2.textContent = part.heading; out.appendChild(h2);
+  part.sections.forEach(s => {
+    const h3 = document.createElement('h3'); h3.textContent = s.title; out.appendChild(h3);
+    const ul = document.createElement('ul');
+    s.points.forEach(p => { const li = document.createElement('li'); li.textContent = p; ul.appendChild(li); });
+    out.appendChild(ul);
+  });
+});
+const note = document.createElement('p');
+note.className = 'note';
+note.textContent = 'A jegyzet utolsó pontja („A kiegyezés értékelése”) a képen itt ért véget, ezért csak a két kulcsszó szerepel.';
+out.appendChild(note);
+
+function showTab(which) {
+  const isCards = which === 'cards';
+  $('cards').hidden = !isCards; $('outline').hidden = isCards;
+  $('tab-cards').setAttribute('aria-selected', isCards);
+  $('tab-outline').setAttribute('aria-selected', !isCards);
+}
+$('tab-cards').onclick = () => showTab('cards');
+$('tab-outline').onclick = () => showTab('outline');
+
+render();
+</script>
+</body>
+</html>
